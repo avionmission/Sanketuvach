@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, Camera, CameraType } from 'expo-camera';
+import axios from 'axios';
 
 const Index: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -14,12 +15,37 @@ const Index: React.FC = () => {
     })();
   }, []);
 
+  // code to test Python backend server
+  const name = "Freddie Mercury"
+  const [error, setError] = useState('');
+  const API_URL = 'http://192.168.0.107:5000/api/process';
+  const sendData = async () => {
+    try {
+      console.log('Sending request to:', API_URL);
+      const response = await axios.post(API_URL, {
+        name: name
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('Response:', response.data);
+      setTranslation(`${response.data.message}`); 
+      setError('');
+    } catch (error) {
+      console.log('Error details:', error.response || error);
+      setError(error.response?.data?.error || error.message);
+    }
+  };
+
   const handleTranslate = async () => {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync();
       // Send the photo to a translation API
       // For this example, we'll just set a mock translation
-      setTranslation('बधाई हो 😊');
+      await sendData();
+      // setTranslation(`${responseData}`);
     }
   };
 
@@ -35,7 +61,7 @@ const Index: React.FC = () => {
       <CameraView style={styles.camera} ref={cameraRef}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={handleTranslate}>
-            <Text style={styles.text}>Translate</Text>
+            <Text style={styles.text}>🔄 Translate</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
@@ -62,7 +88,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   button: {
-    flex: 0.1,
+    flex: 0.35,
     alignSelf: 'flex-end',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
